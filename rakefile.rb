@@ -1,4 +1,4 @@
-ssh_servers = {"root@204.232.194.90" => "/home/chat"} # Hash: server => directory
+ssh_servers = {"user@255.255.255.255" => "/home/chat"} # Hash: server => directory
 remote_root = "/home/chat" # for rsync deployment
 
 desc "Start/Restart/Stop Thin server locally"
