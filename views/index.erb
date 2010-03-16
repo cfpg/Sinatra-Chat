@@ -3,21 +3,40 @@
 	<head>
 		<title>Chat</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="/script.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" charset="utf-8">
+			Chat.room = "<%= locals['room'] %>";
+			Chat.username = "<%= locals['username'] %>";
+			Chat.online = <%= locals['online'] %>;
+		</script>
 		<link rel="stylesheet" type="text/css" href="/style.css" />
 	</head>
 	<body>
+		<div id="info">
+			<div id="online"><a href="#online" title="Ver usuarios online"></a></div>
+			<div id="left">
+				<b><%= locals['username'] %></b>
+				<a href="/<%= locals['room'] %>/logout" id="logout_link">Salir</a>
+			</div>
+		</div>
 	    <div id="messages">
 	        <ul>
     	    </ul>
 	    </div>
-	    <div id="form">
-	       <form action="/messages/new" method="post">
+    	<div id="form">
+	       	<form action="/<%= locals['room'] %>/messages/new" method="post">
+			<input type="hidden" name="username" value="<%= locals['username'] %>" />
 	           <p>
-	               <input type="text" name="message" id="message" /> <input type="submit" name="Enviar" id="submit" />
+	               <input type="text" name="message" id="message" />
 	           </p>
 	       </form>
 	    </div>
+		<div id="user_list">
+			<ul>
+				<li><b>Usuarios en linea:</b></li>
+			</ul>
+		</div>
+		<div id="loading"></div>
 	</body>
 </html>

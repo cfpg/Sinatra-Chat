@@ -71,55 +71,156 @@ function htmlspecialchars (string, quote_style, charset, double_encode) {
  
     return string;
 }
+function scrollBottom() {
+	height = $("#messages").height();
+	$("html,body").animate({scrollTop: height}, 500);
+}
+function stylize() {
+	$("#info").css({
+		width: $(document).width()-10
+	});
+}
 
 $(document).ready(function(){
-	$("#message").select();
+	// Stylize the chat
+	stylize();
+	
 	$("#form form").live("submit", function() {
 		This = $(this);
-		$.post(This.attr("action"), This.serialize(), function(data) {
-			if (data.id !== null) {
-				$("#message").val("").select(); // Clear Text
-			} else {
-				alert("Error");
-			}
-		}, 'json');
+		Chat.toggleLoading("show");
+		Message = $("#message");
+		Message_value = Message.val();
+		Message.val(""); // Clear Text
+		
+		if (Message_value == "") return;
+		$.ajax({
+			type: 'POST',
+			data: "message="+Message_value+"&username="+Chat.username,
+			url: This.attr("action"),
+			success: function(data) {
+				if (data.id !== null) {
+					$("#message").select(); // Select field
+					Chat.createMessage($.parseJSON(data)); // Add message
+				} else {
+					alert("Error");
+					Message.val(Message_value);
+				}
+				Chat.toggleLoading("hide");
+			},
+			datatype: "json"
+		});
 		return false;
 	});
+	
+	$("#online a").live("click", function() {
+		// Show online users list
+		Chat.pause = true // Pause the chat
+		This = $("#online a");
+		Messages = $("#messages");
+		
+		User_list = $("#user_list");
+		User_list_ul = $("#user_list ul");
+		// If user_list is visible, hide it
+		if (User_list.is(':visible')) {
+			User_list.slideUp(500);
+			Messages.slideDown(500);
+			This.removeClass("close");
+			Chat.pause = false;
+			Chat.update(); // Start the chat again
+			User_list_ul.html('<li><b>Usuarios en linea:</b></li>'); // Reset the user list content
+			return;
+		} else {
+			User_list.slideDown(500);
+			Messages.slideUp(350);
+		}
+		
+		This.addClass("close");
+		This.html("Volver al <b>Chat</b>");
+		Chat.toggleLoading("show");
+		
+		$.getJSON("/"+Chat.room+"/online_users", function(data) {
+			while (data.length > 0) {
+				row = data.shift();
+				User_list_ul.append('<li>'+row.username+'</li>');
+				Chat.toggleLoading("hide");
+			}
+		});
+		
+		return false;
+	});
+	
 	Chat.update();
 });
 
 Chat = {
+	timer: 500,
 	sleepTimer: 500,
 	cursor: null,
-	stop: false,
+	pause: false,
+	room: "default",
 	update: function() {
-		url = '/messages/'+Chat.cursor;
+		url = '/'+Chat.room+'/messages/'+Chat.cursor;
 		if (Chat.cursor == null) {
-			url = '/messages/get_5';
+			url = '/'+Chat.room+'/messages/get_10';
 		}
-		$.ajax({ url: url, success: Chat.onSuccess, error: Chat.onError, datatype: 'json' });
+		$.ajax({
+			type: 'POST',
+			data: "username="+Chat.username,
+			url: url,
+			success: Chat.onSuccess,
+			error: Chat.onError,
+			datatype: 'json'
+		});
 	},
 	onSuccess: function(data) {
-		Chat.addMessage(eval(data));
-		if (!Chat.stop) window.setTimeout(Chat.update, 500);
+		data = $.parseJSON(data);
+		Chat.addMessage(data.messages);
+		Chat.updateOnline(data.online);
+		if (!Chat.pause) {
+			window.setTimeout(Chat.update, Chat.timer);
+		}
 	},
 	onError: function() {
 		Chat.sleepTimer = Chat.sleepTimer * 2;
-		if (!Chat.stop) window.setTimeout(Chat.update, Chat.sleepTimer);
+		if (!Chat.pause) {
+			window.setTimeout(Chat.update, Chat.sleepTimer);
+		}
 	},
 	addMessage: function(data) {
 		if (data === null) return;
 		if (isArray(data)) {
 			while (data.length > 0) {
-				Chat.createMessage(data.shift());
+				new_data = data.shift();
+				Chat.createMessage(new_data);
 			}
 		} else {
 			Chat.createMessage(data);
 		}
+		stylize();
 	},
 	createMessage: function(data) {
-		layout = '<li id="msg_'+data.id+'"><b>'+data.username+':</b> '+htmlspecialchars(data.text)+'</li>';
+		if ($('#msg_'+data.id).length > 0) return;
+		layout = $('<li id="msg_'+data.id+'"><b>'+data.username+':</b> '+htmlspecialchars(data.text)+'</li>');
+		layout.hide();
 		$("#messages ul").append(layout);
-		Chat.cursor = data.id; // Set cursor to last message id
+		layout.slideDown();
+		Chat.cursor = data.time; // Set cursor to last message time
+		scrollBottom();
+	},
+	updateOnline: function(online) {
+		if (online > 1) {
+			str = online+" Personas online"
+		} else {
+			str = online+" Persona online"
+		}
+		$("#online a:not('.close')").html(str);
+	},
+	toggleLoading: function(to) {
+		Loading = $("#loading");
+		if (to == "show") {
+			Loading.show();
+		} else {
+			Loading.hide();
+		}
 	}
 }

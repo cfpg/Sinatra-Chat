@@ -1,0 +1,39 @@
+<html>
+    <head>
+        <title>Entrar al Chat</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" charset="utf-8">
+			$(function() {
+				$("#login_form").submit(function() {
+					if ($("#username").val() == "admin") {
+						alert("No puedes usar ese nick :)");
+						$("#username").val("");
+						return false;
+					}
+				});
+			});
+		</script>
+		<style type="text/css" media="screen">
+			body {
+				font-family: Helvetica, Arial, Verdana, sans-serif;
+				font-size: 16px;
+			}
+			form {
+				height: 16px;
+				line-height: 16px;
+				text-align: center;
+				margin-top: 25%;
+				width: 100%;
+			}
+			form label {display: block;}
+		</style>
+    </head>
+    <body>
+		<form action="/<%= locals['room'] %>/login" method="post" id="login_form">
+			<label for="username">
+				<b>Nick:</b> <input type="text" name="username" id="username" value="<%= locals['username'] %>" />
+			</label>
+			<input type="submit" value="&iexcl;Entrar al Chat!" />
+		</form>
+    </body>
+</html>

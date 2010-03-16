@@ -1,0 +1,1 @@
+document.write('<iframe src="http://localhost:9393/'+weChat.room+'?username='+weChat.username+'" id="'+weChat.id+'" style="height: '+weChat.height+'; width: '+weChat.width+';"></iframe>');

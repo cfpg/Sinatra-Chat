@@ -1,14 +1,15 @@
 ---
   environment: production
   chdir: /home/chat/
-  address: 204.232.194.90
+  address: 127.0.0.1
   user: root
   group: root
-  port: 8080
+  port: 4560
   pid: /home/chat/tmp/thin.pid
   rackup: /home/chat/config.ru
   log: /home/chat/log/thin.log
   max_conns: 1024
   timeout: 30
+  servers: 5
   max_persistent_conns: 512
   daemonize: true
